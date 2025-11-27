@@ -11,42 +11,104 @@ This template repository provides **100% local semantic code search** using [Far
 - 🎯 **Per-Project**: Isolated index for each project
 - 🌐 **Multi-Language**: Python, JS/TS, Go, Rust, Java, C/C++, C#, Markdown
 
-## 🚀 Quick Start (2 Minutes)
+## 🚀 Quick Start
 
 ### For New Projects
 
-```bash
-# 1. Use this template for your new project
-git clone <your-template-url> your-project
-cd your-project
+1. **Use this template for your new project**
+   ```bash
+   git clone <your-template-url> your-project
+   cd your-project
+   ```
 
-# 2. Install FarhanAliRaza globally (one-time, ~1 minute)
-curl -fsSL https://raw.githubusercontent.com/FarhanAliRaza/claude-context-local/main/scripts/install.sh | bash
+2. **Install FarhanAliRaza globally** (one-time, ~1 minute)
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/FarhanAliRaza/claude-context-local/main/scripts/install.sh | bash
+   ```
 
-# 3. Restart Claude Code
-# Close and reopen Claude Code completely
+3. **Enable Claude Code MCP approval** (CRITICAL - Required for MCP to load)
 
-# 4. Index your codebase
-# In Claude Code, type: "Index this codebase"
+   Create or edit `.claude/settings.local.json` in your project:
+   ```bash
+   mkdir -p .claude
+   cat > .claude/settings.local.json << 'EOF'
+   {
+     "enableAllProjectMcpServers": true
+   }
+   EOF
+   ```
 
-# 5. Start searching!
-# "Find authentication code"
-# "Show me the API client class"
-```
+   **Why needed**: Claude Code requires explicit approval to load MCP servers from `.mcp.json`. Without this setting, the server won't activate even after restart.
+
+   **Alternative** (selective approval):
+   ```json
+   {
+     "enabledMcpjsonServers": ["code-search"]
+   }
+   ```
+
+4. **Restart Claude Code**
+
+   Close and reopen Claude Code completely
+
+5. **Verify MCP server loaded**
+
+   Ask Claude: "List available MCP tools"
+
+   You should see `mcp__code-search__*` tools listed
+
+6. **Index your codebase**
+
+   In Claude Code: "Index this codebase"
+
+7. **Start searching!**
+
+   Examples:
+   - "Find authentication code"
+   - "Show me the API client class"
 
 ### For Existing Projects
 
-```bash
-# 1. Copy these files to your project root:
-cp .mcp.json your-project/
-cp .mcp-server-wrapper.sh your-project/
-cp .gitignore your-project/.gitignore  # Or merge with existing
+1. **Copy configuration files** to your project root:
+   ```bash
+   cp .mcp.json your-project/
+   cp .mcp-server-wrapper.sh your-project/
+   # Merge with existing .gitignore if it exists
+   cat .gitignore >> your-project/.gitignore
+   ```
 
-# 2. Make wrapper executable
-chmod +x your-project/.mcp-server-wrapper.sh
+2. **Make wrapper executable**
+   ```bash
+   chmod +x your-project/.mcp-server-wrapper.sh
+   ```
 
-# 3. Follow steps 2-5 from above
-```
+3. **Enable Claude Code MCP approval** (CRITICAL)
+
+   Create or edit `.claude/settings.local.json` in your project:
+   ```bash
+   cd your-project
+   mkdir -p .claude
+   cat > .claude/settings.local.json << 'EOF'
+   {
+     "enableAllProjectMcpServers": true
+   }
+   EOF
+   ```
+
+4. **Install FarhanAliRaza globally** (if not already installed)
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/FarhanAliRaza/claude-context-local/main/scripts/install.sh | bash
+   ```
+
+5. **Restart Claude Code**
+
+   Close and reopen completely
+
+6. **Verify and index**
+
+   Ask Claude: "List available MCP tools" (should see `mcp__code-search__*`)
+
+   Then: "Index this codebase"
 
 ## 📋 Prerequisites
 
@@ -69,11 +131,14 @@ curl -fsSL https://raw.githubusercontent.com/FarhanAliRaza/claude-context-local/
 
 ```
 .
-├── .mcp.json                    ✅ Commit - MCP server config
-├── .mcp-server-wrapper.sh       ✅ Commit - Server wrapper script
-├── .gitignore                   ✅ Commit - Excludes index
-├── README.md                    ✅ Commit - This file
-└── .code-search-index/          ❌ DON'T commit - Local index (auto-generated)
+├── .mcp.json                         ✅ Commit - MCP server config
+├── .mcp-server-wrapper.sh            ✅ Commit - Server wrapper script
+├── .gitignore                        ✅ Commit - Excludes index
+├── .claude/
+│   └── settings.local.json.template  ✅ Commit - Template for MCP approval
+├── README.md                         ✅ Commit - This file
+├── SETUP_CHECKLIST.md                ✅ Commit - Verification guide
+└── .code-search-index/               ❌ DON'T commit - Local index (auto-generated)
 ```
 
 ## 🎮 Usage Examples
@@ -140,6 +205,8 @@ Returns:
 │ Your Project                                    │
 │ ├── .mcp.json            ← Claude Code reads   │
 │ ├── .mcp-server-wrapper.sh ← Launches server   │
+│ ├── .claude/                                    │
+│ │   └── settings.local.json ← Enables MCP      │
 │ └── .code-search-index/  ← Local FAISS index   │
 └─────────────────────────────────────────────────┘
                     ↓
@@ -154,10 +221,43 @@ Returns:
 **Key Points:**
 - FarhanAliRaza installed once globally in `~/.local/share/`
 - Each project has its own isolated index in `.code-search-index/`
+- Claude Code approval via `.claude/settings.local.json` required
 - No conflicts between projects
 - Safe to delete and regenerate index anytime
 
 ## 🛠️ Troubleshooting
+
+### MCP Server Not Loading After Restart
+
+**Symptom**: No `mcp__code-search__*` tools available after restart
+
+**Cause**: Missing Claude Code approval setting
+
+**Fix**:
+1. Create or edit `.claude/settings.local.json` in your project root:
+   ```bash
+   mkdir -p .claude
+   cat > .claude/settings.local.json << 'EOF'
+   {
+     "enableAllProjectMcpServers": true
+   }
+   EOF
+   ```
+
+2. Restart Claude Code again
+
+**Verify fix**:
+```bash
+# Check if approval setting exists
+cat .claude/settings.local.json | grep enableAllProjectMcpServers
+# Should output: "enableAllProjectMcpServers": true
+```
+
+**Additional checklist**:
+1. ✅ Is `.mcp.json` in project root? `ls .mcp.json`
+2. ✅ Is wrapper executable? `ls -la .mcp-server-wrapper.sh` (should show `rwx`)
+3. ✅ Is global install present? `ls ~/.local/share/claude-context-local/`
+4. ✅ Is approval enabled? `grep enableAllProjectMcpServers .claude/settings.local.json`
 
 ### "claude-context-local not found"
 
@@ -174,13 +274,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Restart terminal
 ```
 
-### MCP Server Not Loading
+### Wrapper Script Permission Denied
 
-**Checklist:**
-1. Is `.mcp.json` in project root? ✓
-2. Did you restart Claude Code? ✓
-3. Is wrapper executable? `ls -la .mcp-server-wrapper.sh`
-4. Does global install exist? `ls ~/.local/share/claude-context-local/`
+**Fix:**
+```bash
+chmod +x .mcp-server-wrapper.sh
+```
 
 ### Re-index from Scratch
 
@@ -190,6 +289,20 @@ rm -rf .code-search-index/
 
 # Re-index in Claude Code:
 "Index this codebase"
+```
+
+### Index Not Building / Search Returns No Results
+
+**Checklist**:
+1. ✅ Did indexing complete successfully?
+2. ✅ Check index stats: "What's the indexing status?"
+3. ✅ Verify files in `.code-search-index/projects/*/index/`
+
+**Fix**:
+```bash
+# Re-index from scratch
+rm -rf .code-search-index/
+# Then in Claude Code: "Index this codebase"
 ```
 
 ## 📊 Performance
@@ -239,6 +352,7 @@ FarhanAliRaza/claude-context-local has its own license - see their repository.
 
 - [FarhanAliRaza Repository](https://github.com/FarhanAliRaza/claude-context-local)
 - [Setup Guide](SETUP_GUIDE.md) - Detailed instructions
+- [Setup Checklist](SETUP_CHECKLIST.md) - Step-by-step verification
 - [Comparison](THREE_WAY_COMPARISON.md) - Why we chose FarhanAliRaza
 
 ---
