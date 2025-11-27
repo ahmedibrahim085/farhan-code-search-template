@@ -1,0 +1,4 @@
+# Code Search Index (local, per-machine)
+# This directory contains the semantic search index for this project
+# Each developer regenerates this on their machine after cloning
+.code-search-index/
